@@ -1,0 +1,13 @@
+{
+  "name": "skills",
+  "owner": {
+    "name": "MuktadirHassan"
+  },
+  "plugins": [
+    {
+      "name": "te",
+      "source": "./",
+      "description": "Token-efficiency skills, hooks, and MCP wiring for Claude Code. Keeps the supervisor's context lean: subagent delegation, model tiering, and scratch externalization."
+    }
+  ]
+}

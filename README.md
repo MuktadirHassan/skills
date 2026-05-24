@@ -78,10 +78,11 @@ rtk init -g                 # installs the PreToolUse hook globally
 **Install the plugin:**
 
 ```
-/plugin install MuktadirHassan/skills
+/plugin marketplace add MuktadirHassan/skills
+/plugin install te@skills
 ```
 
-(Or, for local development: `claude --plugin-dir /path/to/this/repo`.)
+(Or, for local development: `/plugin marketplace add /path/to/this/repo` then `/plugin install te@skills`.)
 
 **Per-project setup:**
 
