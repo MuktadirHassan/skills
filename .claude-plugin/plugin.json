@@ -1,10 +1,10 @@
 {
   "name": "te",
-  "description": "Token-efficiency skills, hooks, and MCP wiring for Claude Code. Keeps the supervisor's context lean: subagent delegation patterns, model tiering, pre-indexed code graph queries, scratch externalization, and shell-output trimming via RTK.",
+  "description": "Token-efficiency skills, hooks, and MCP wiring for Claude Code. Keeps the supervisor's context lean: subagent delegation patterns, model tiering, pre-indexed code graph queries, and scratch externalization. Pairs well with RTK (installed separately) for shell-output trimming.",
   "version": "0.1.0",
   "author": {
     "name": "MuktadirHassan"
   },
-  "homepage": "https://github.com/MuktadirHassan/claude-token-efficiency",
+  "homepage": "https://github.com/MuktadirHassan/skills",
   "license": "MIT"
 }
