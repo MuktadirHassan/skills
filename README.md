@@ -36,7 +36,7 @@ curl -fsSL https://raw.githubusercontent.com/MuktadirHassan/skills/main/template
 
 That's it. No skills, no hooks. The system prompt now contains the delegation rules, model tiering, return contracts, and context-hygiene guidance. Use it on one project, see if it changes how Claude works for you.
 
-### Tier 2 — Install the skills standalone (10 min)
+### Tier 2 — Install the skills standalone (5 min)
 
 Drop the skills into your global `~/.claude/skills/` so they're invokable everywhere with short names:
 
@@ -49,7 +49,7 @@ Restart Claude Code. Run `/help` and you should see `/delegate-work`, `/tier-mod
 
 This is skills-only — no hooks. The `scratch-context` skill works but you have to remember to read your notes manually. For structural code queries, install CodeGraph separately (see companion section above); for shell-output trimming, install RTK separately (`cargo install rtk && rtk init -g`).
 
-### Tier 3 — Install as the `te` plugin (30 min, full stack)
+### Tier 3 — Install as the `te` plugin (10 min, full stack)
 
 This is the recommended path for serious use. Skills + hooks, one install.
 
