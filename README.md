@@ -84,14 +84,32 @@ rtk init -g                 # installs the PreToolUse hook globally
 
 (Or, for local development: `/plugin marketplace add /path/to/this/repo` then `/plugin install te@skills`.)
 
-**Per-project setup:**
+After install, the following happen **automatically everywhere**:
+- Skills are available namespaced: `/te:delegate-work`, `/te:tier-model`, `/te:scratch-context`
+- The `SessionStart` hook runs on every session start and injects `.agent-scratch/` notes — but only if that directory exists in the project (see per-project setup below)
+
+The following do **not** happen automatically and require manual steps per project:
+
+**1. Activate operating rules (recommended)** — without this, the skills exist but Claude won't apply the delegation/tiering patterns unless you invoke them manually:
 
 ```bash
-echo ".agent-scratch/" >> .gitignore
-# If you installed CodeGraph: also run `codegraph init -i` and add `.codegraph/` to .gitignore
+curl -fsSL https://raw.githubusercontent.com/MuktadirHassan/skills/main/templates/CLAUDE.md -o CLAUDE.md
 ```
 
-Skills are now namespaced: `/te:delegate-work`, `/te:tier-model`, etc. The plugin's `SessionStart` hook injects `.agent-scratch/` notes automatically.
+**2. Enable scratch injection:**
+
+```bash
+mkdir .agent-scratch
+echo ".agent-scratch/" >> .gitignore
+```
+
+**3. (Optional) CodeGraph per-project index:**
+
+```bash
+# If you installed CodeGraph:
+codegraph init -i
+echo ".codegraph/" >> .gitignore
+```
 
 ## Per-project vs global
 
