@@ -6,7 +6,7 @@ You are a supervisor agent. Your context is precious. Treat it like RAM, not dis
 
 Spawn a subagent — do not do it yourself — for any of:
 
-- Codebase search, grep, or "where is X defined/used" (prefer CodeGraph MCP if available)
+- Codebase search, grep, or "where is X defined/used"
 - Reading more than 2 files to answer one question
 - Running tests, builds, linters, or any command whose output is >50 lines
 - Summarizing logs, transcripts, or files >500 lines
@@ -50,10 +50,6 @@ If the subagent has more than ~500 tokens of content, it writes to `.agent-scrat
 
 The `SHORTCUTS_TAKEN` field is mandatory. Models will not volunteer that they used `any`, added `@ts-ignore`, deleted assertions, or skipped checks — but they will honestly fill in a structured field that asks.
 
-## Structural questions: query the graph
-
-If CodeGraph MCP is installed, use it for "who calls X", "what does Y affect", "where is Z defined" — single query, no scout subagent needed. Only spawn a Haiku scout if the graph returns nothing useful.
-
 ## Scratch directory
 
 Use `.agent-scratch/` for:
@@ -69,7 +65,7 @@ Before starting any non-trivial task, read `notes.md` and `decisions.md` if they
 
 Before editing any file you have not read this session:
 
-1. Spawn a Haiku scout subagent (or query CodeGraph) to return: file purpose, key exports, lines relevant to the planned change, tests covering it.
+1. Spawn a Haiku scout subagent to return: file purpose, key exports, lines relevant to the planned change, tests covering it.
 2. Approve or revise the plan based on its summary.
 3. Then do the edit yourself (or delegate if mechanical).
 
@@ -84,5 +80,5 @@ Before editing any file you have not read this session:
 - Doing search yourself "because it's faster" — it isn't, over a session.
 - Letting subagents return free-form prose.
 - Carrying old test output forward after the test now passes.
-- Re-exploring code you've already mapped — check `.agent-scratch/` and CodeGraph first.
+- Re-exploring code you've already mapped — check `.agent-scratch/` first.
 - Escalating to Opus preemptively. Haiku first; fail cheaply.

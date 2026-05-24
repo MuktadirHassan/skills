@@ -79,5 +79,5 @@ After the supervisor makes a change, a Haiku subagent runs all checks (typecheck
 ## See also
 
 - [[tier-model]] — pick the cheapest model that can do the subagent's work
-- [[scout-codegraph]] — for structural questions, skip the scout subagent entirely
 - [[scratch-context]] — where subagents drop oversized artifacts
+- For structural questions ("who calls X", "what does Y affect"), prefer querying [CodeGraph](https://github.com/colbymchenry/codegraph) directly over spawning a scout subagent — one MCP call beats 30 greps. CodeGraph ships its own Claude Code integration; no skill needed.

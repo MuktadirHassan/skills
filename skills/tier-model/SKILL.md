@@ -43,4 +43,4 @@ Smaller models on focused tasks tend to return tighter outputs. A Haiku subagent
 ## See also
 
 - [[delegate-work]] — most subagents spawned via this skill should be Haiku
-- [[scout-codegraph]] — graph queries are model-free; cheaper than even Haiku
+- [CodeGraph](https://github.com/colbymchenry/codegraph) MCP — for structural code queries, graph lookups are model-free; cheaper than even Haiku

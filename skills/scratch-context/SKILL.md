@@ -66,4 +66,4 @@ Suggest it explicitly — models don't volunteer this often enough.
 ## See also
 
 - [[delegate-work]] — subagents write oversized outputs to `.agent-scratch/<task>.md`
-- [[scout-codegraph]] — for *structural* facts about the codebase, query the graph; scratch is for *task-specific* learnings
+- For *structural* facts about the codebase, query [CodeGraph](https://github.com/colbymchenry/codegraph) directly; scratch is for *task-specific* learnings
