@@ -28,13 +28,13 @@ Three install paths. Pick based on commitment, not ambition. **Start at Tier 1**
 
 ### Tier 1 — Try the patterns (5 min, zero install)
 
-Copy the CLAUDE.md template into one project:
+Copy the lean CLAUDE.md template into one project:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MuktadirHassan/skills/main/templates/CLAUDE.md -o CLAUDE.md
 ```
 
-That's it. No skills, no hooks. The system prompt now contains the delegation rules, model tiering, return contracts, and context-hygiene guidance. Use it on one project, see if it changes how Claude works for you.
+That's it. No skills, no hooks. The file is intentionally short (~5 lines) — just the triggers that change behavior without eating tokens every request. Want the extended rules (model tiering table, return contract schema, failure modes)? Copy the sections you want from [`templates/SYSTEM_PROMPT.md`](templates/SYSTEM_PROMPT.md) into your `CLAUDE.md` or `~/.claude/CLAUDE.md`.
 
 ### Tier 2 — Install the skills standalone (5 min)
 
@@ -90,7 +90,7 @@ After install, the following happen **automatically everywhere**:
 
 The following do **not** happen automatically and require manual steps per project:
 
-**1. Activate operating rules (recommended)** — without this, the skills exist but Claude won't apply the delegation/tiering patterns unless you invoke them manually:
+**1. Activate operating rules (recommended)** — without this, the skills exist but Claude won't apply the delegation/tiering patterns unless you invoke them manually. The base template is intentionally lean (~5 lines). Add sections from [`templates/SYSTEM_PROMPT.md`](templates/SYSTEM_PROMPT.md) if you want more detail (model tiering table, return contracts, etc.):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MuktadirHassan/skills/main/templates/CLAUDE.md -o CLAUDE.md
@@ -113,7 +113,7 @@ echo ".codegraph/" >> .gitignore
 
 ## Per-project vs global
 
-- **`templates/CLAUDE.md`** → per project. Different codebases want different defaults (a TS monorepo isn't a Python script).
+- **`templates/CLAUDE.md`** → per project (or global in `~/.claude/CLAUDE.md`). Intentionally lean — just the triggers. Extend with sections from `templates/SYSTEM_PROMPT.md` as needed.
 - **Plugin / standalone skills** → global. You want them everywhere.
 - **`.agent-scratch/`** → per project, in `.gitignore`.
 

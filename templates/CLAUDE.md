@@ -1,84 +1,9 @@
 # Agent operating rules
 
-You are a supervisor agent. Your context is precious. Treat it like RAM, not disk.
+Context is RAM, not disk. Delegate aggressively.
 
-## Delegation policy
-
-Spawn a subagent — do not do it yourself — for any of:
-
-- Codebase search, grep, or "where is X defined/used"
-- Reading more than 2 files to answer one question
-- Running tests, builds, linters, or any command whose output is >50 lines
-- Summarizing logs, transcripts, or files >500 lines
-- Iterative fix loops (typecheck → fix → re-run; failing test → fix → re-run)
-- Verifying external facts (API shapes, library versions, docs lookups)
-
-Do it yourself only when the work requires cross-cutting judgment or synthesizes results from multiple completed subagent runs.
-
-## Model tiering
-
-| Task type | Model |
-|---|---|
-| File search, grep, path discovery | Haiku |
-| Running and interpreting tests/builds/linters | Haiku |
-| Log triage, error extraction | Haiku |
-| Mechanical refactor with explicit spec | Haiku |
-| Single-file edits under a clear contract | Haiku |
-| Scaffolds following existing patterns | Haiku |
-| Verifier subagents | Haiku |
-| Architecture, design, multi-file changes | Sonnet |
-| Debugging unknown root cause | Sonnet |
-| Anything requiring taste or trade-offs | Sonnet |
-| Cross-system reasoning where Sonnet stalled twice | Opus |
-
-Default to Haiku. Escalate only if it returns "needs judgment".
-
-## Subagent return contract
-
-Every subagent call must specify a return format. Default schema:
-
-```
-STATUS: ok | needs_input | failed
-SUMMARY: <= 3 sentences
-ARTIFACTS: <list of file paths the subagent wrote>
-SHORTCUTS_TAKEN:
-  - <file:line, what was bypassed, why>  (or "none")
-NEXT: <suggested next step, or "none">
-```
-
-If the subagent has more than ~500 tokens of content, it writes to `.agent-scratch/<task-id>.md` and returns the path. Do not pull the content into supervisor context unless you actually need it.
-
-The `SHORTCUTS_TAKEN` field is mandatory. Models will not volunteer that they used `any`, added `@ts-ignore`, deleted assertions, or skipped checks — but they will honestly fill in a structured field that asks.
-
-## Scratch directory
-
-Use `.agent-scratch/` for:
-
-- Running task notes (`notes.md`) — append, don't rewrite
-- Decisions log (`decisions.md`) — one line per decision with rationale
-- Ruled-out hypotheses (`dead-ends.md`) — so you don't re-investigate them
-- Subagent outputs too long for context
-
-Before starting any non-trivial task, read `notes.md` and `decisions.md` if they exist. After finishing, append what you learned.
-
-## Pre-flight for edits
-
-Before editing any file you have not read this session:
-
-1. Spawn a Haiku scout subagent to return: file purpose, key exports, lines relevant to the planned change, tests covering it.
-2. Approve or revise the plan based on its summary.
-3. Then do the edit yourself (or delegate if mechanical).
-
-## Context hygiene
-
-- If you've re-read the same file twice in one task, write the relevant facts to `.agent-scratch/notes.md` and refer to that instead.
-- When a task completes and the user starts a new one, suggest `/compact` or a fresh session before continuing.
-- Never paste full file contents into your own reasoning if a line range or summary would do.
-
-## Failure modes to avoid
-
-- Doing search yourself "because it's faster" — it isn't, over a session.
-- Letting subagents return free-form prose.
-- Carrying old test output forward after the test now passes.
-- Re-exploring code you've already mapped — check `.agent-scratch/` first.
-- Escalating to Opus preemptively. Haiku first; fail cheaply.
+- Spawn a subagent for: search, grep, reading >2 files, test/build runs, fix loops, log triage
+- Do it yourself only when the work requires cross-cutting judgment or synthesizes subagent results
+- Default model: Haiku. Escalate to Sonnet for judgment/trade-offs. Opus only after Sonnet stalls twice
+- Before any non-trivial task, check `.agent-scratch/notes.md` and `decisions.md` if they exist
+- After finishing, append what you learned to `.agent-scratch/notes.md`
