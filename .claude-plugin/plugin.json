@@ -1,7 +1,7 @@
 {
   "name": "te",
   "description": "Token-efficiency skills, hooks, and MCP wiring for Claude Code. Keeps the supervisor's context lean: subagent delegation patterns, model tiering, pre-indexed code graph queries, and scratch externalization. Pairs well with RTK (installed separately) for shell-output trimming.",
-  "version": "0.1.0",
+  "version": "0.1.12",
   "author": {
     "name": "MuktadirHassan"
   },
