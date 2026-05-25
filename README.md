@@ -8,11 +8,12 @@ The throughline: **the supervisor agent's context is RAM, not disk.** Anything t
 
 | Component | Type | What it does |
 |---|---|---|
+| [`token-efficient-agent`](skills/token-efficient-agent/SKILL.md) | Skill (meta) | Orchestrator — activates all three patterns at task start. Single routing target for the agent. |
 | [`delegate-work`](skills/delegate-work/SKILL.md) | Skill | Spawn subagents for search, verification, and iteration loops. Enforces structured return contracts so the supervisor sees a summary, not the noise. |
 | [`tier-model`](skills/tier-model/SKILL.md) | Skill | Decision table for Haiku vs Sonnet vs Opus. Default Haiku, escalate on judgment. |
 | [`scratch-context`](skills/scratch-context/SKILL.md) | Skill + `SessionStart` hook | Externalize running notes, decisions, and ruled-out hypotheses to `.agent-scratch/`. The hook auto-injects them at session start. |
 
-Plus [`templates/CLAUDE.md`](templates/CLAUDE.md) (drop-in operating rules) and [`templates/return-contract.md`](templates/return-contract.md) (subagent reply schemas).
+Plus [`templates/CLAUDE.md`](templates/CLAUDE.md) (drop-in operating rules), [`templates/SYSTEM_PROMPT.md`](templates/SYSTEM_PROMPT.md) (extended rules), and [`templates/return-contract.md`](templates/return-contract.md) (copy-paste subagent reply schemas).
 
 ### Recommended companion: [CodeGraph](https://github.com/colbymchenry/codegraph)
 
@@ -137,14 +138,19 @@ Two things to measure if you want to know it's working: tokens-per-completed-tas
 ## Repo layout
 
 ```
-.claude-plugin/plugin.json   plugin manifest (name: te)
+.claude-plugin/plugin.json        plugin manifest (name: te)
 hooks/
-  hooks.json                 SessionStart registration
-  load-scratch.py            injects .agent-scratch contents on session start
-skills/                      the three skills (work standalone or as plugin)
+  hooks.json                      SessionStart registration
+  load-scratch.py                 injects .agent-scratch contents on session start
+skills/
+  token-efficient-agent/SKILL.md  meta/orchestrator — activates all three patterns
+  delegate-work/SKILL.md          subagent patterns and return contract enforcement
+  tier-model/SKILL.md             Haiku / Sonnet / Opus decision table
+  scratch-context/SKILL.md        externalize notes, decisions, dead ends to disk
 templates/
-  CLAUDE.md                  drop-in operating rules
-  return-contract.md         subagent reply schemas
+  CLAUDE.md                       drop-in operating rules (lean, ~5 lines)
+  SYSTEM_PROMPT.md                extended rules (model table, return contract, failure modes)
+  return-contract.md              subagent reply schemas (copy-paste ready)
 ```
 
 The skills directory follows the same shape Claude Code expects in `~/.claude/skills/`, so the same files work as a standalone install and as part of the plugin — no duplication.

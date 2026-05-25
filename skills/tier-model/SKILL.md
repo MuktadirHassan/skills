@@ -1,6 +1,6 @@
 ---
 name: tier-model
-description: Use this skill when deciding which Claude model should handle a task or subagent — Haiku, Sonnet, or Opus. Default to Haiku for mechanical work (search, test runners, log triage, scaffolds), Sonnet for judgment work (debugging, architecture, multi-file changes), and Opus only when Sonnet stalls. Invoke before spawning a subagent or starting a new piece of work.
+description: Use this skill when picking a model for a subagent or task — Haiku for mechanical work (search, test runners, log triage, scaffolds), Sonnet for judgment (debugging, architecture, multi-file changes), Opus only when Sonnet stalls. Apply at the start of any session, before spawning a subagent, or whenever a task's complexity is unclear.
 ---
 
 # Pick the right model for the job
