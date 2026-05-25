@@ -1,139 +1,74 @@
 # skills(claude-token-efficiency) (`te` plugin)
 
-Opinionated skills, hooks, and MCP wiring for keeping Claude Code's context window lean on long sessions and large codebases. Public, MIT-licensed, drop-in.
+Keep Claude Code's context window lean on long sessions and large codebases.
 
-The throughline: **the supervisor agent's context is RAM, not disk.** Anything that's long, noisy, iterative, or lookup-shaped should happen *outside* the supervisor's window — in a subagent, in a pre-built index, in a scratch file, or in a proxy that trims output before it ever lands.
+**The core idea:** the supervisor agent's context is RAM, not disk. Anything long, noisy, or iterative should happen outside the supervisor's window — in a subagent, in a scratch file, or trimmed before it lands.
 
-## What's in here
+## Skills
 
-| Component | Type | What it does |
-|---|---|---|
-| [`token-efficient-agent`](skills/token-efficient-agent/SKILL.md) | Skill (meta) | Orchestrator — activates all three patterns at task start. Single routing target for the agent. |
-| [`delegate-work`](skills/delegate-work/SKILL.md) | Skill | Spawn subagents for search, verification, and iteration loops. Enforces structured return contracts so the supervisor sees a summary, not the noise. |
-| [`tier-model`](skills/tier-model/SKILL.md) | Skill | Decision table for Haiku vs Sonnet vs Opus. Default Haiku, escalate on judgment. |
-| [`scratch-context`](skills/scratch-context/SKILL.md) | Skill + `SessionStart` hook | Externalize running notes, decisions, and ruled-out hypotheses to `.agent-scratch/`. The hook auto-injects them at session start. |
+| Skill | What it does |
+|---|---|
+| [`token-efficient-agent`](skills/token-efficient-agent/SKILL.md) | Meta/orchestrator — activates all three patterns at task start |
+| [`delegate-work`](skills/delegate-work/SKILL.md) | Spawn subagents for search, iteration loops, and verification. Enforces structured return contracts. |
+| [`tier-model`](skills/tier-model/SKILL.md) | Decision table: Haiku for mechanical work, Sonnet for judgment, Opus only when Sonnet stalls |
+| [`scratch-context`](skills/scratch-context/SKILL.md) | Externalize notes, decisions, and dead ends to `.agent-scratch/` so they survive across turns |
 
-Plus [`templates/CLAUDE.md`](templates/CLAUDE.md) (drop-in operating rules), [`templates/SYSTEM_PROMPT.md`](templates/SYSTEM_PROMPT.md) (extended rules), and [`templates/return-contract.md`](templates/return-contract.md) (copy-paste subagent reply schemas).
+## Install
 
-### Recommended companion: [CodeGraph](https://github.com/colbymchenry/codegraph)
+### Option A — Plugin (recommended)
 
-CodeGraph is a separate MCP server that pre-indexes your codebase as a SQLite knowledge graph. Structural questions ("who calls X", "what does Y affect") become one tool call instead of 30 greps. It ships its own Claude Code integration — the installer registers the MCP server and writes its usage instructions into `~/.claude/CLAUDE.md` globally, so there's nothing for this plugin to add. Install with `curl -fsSL https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.sh | sh`, then run `codegraph init -i` per project.
-
-### Recommended companion: [RTK](https://github.com/rtk-ai/rtk)
-
-RTK is a separate tool that trims verbose Bash output (60–90% savings on `git`, `npm`, `cargo`, etc.) before the model sees it. Install it with `cargo install rtk && rtk init -g` and it ships its own Claude Code hook and its own `RTK.md` skill — there's nothing for this plugin to add. It pairs perfectly with the patterns here: our skills shrink *what enters the supervisor's window*, RTK shrinks *what the Bash tool returns*.
-
-## Install — pick a tier
-
-Three install paths. Pick based on commitment, not ambition. **Start at Tier 1** even if you plan to land on Tier 3 — it takes 5 minutes and tells you whether the patterns fit your workflow before you commit to hooks and MCP.
-
-### Tier 1 — Try the patterns (5 min, zero install)
-
-Copy the lean CLAUDE.md template into one project:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/MuktadirHassan/skills/main/templates/CLAUDE.md -o CLAUDE.md
-```
-
-That's it. No skills, no hooks. The file is intentionally short (~5 lines) — just the triggers that change behavior without eating tokens every request. Want the extended rules (model tiering table, return contract schema, failure modes)? Copy the sections you want from [`templates/SYSTEM_PROMPT.md`](templates/SYSTEM_PROMPT.md) into your `CLAUDE.md` or `~/.claude/CLAUDE.md`.
-
-### Tier 2 — Install the skills standalone (5 min)
-
-Drop the skills into your global `~/.claude/skills/` so they're invokable everywhere with short names:
-
-```bash
-git clone https://github.com/MuktadirHassan/skills /tmp/te
-cp -r /tmp/te/skills/* ~/.claude/skills/
-```
-
-Restart Claude Code. Run `/help` and you should see `/delegate-work`, `/tier-model`, `/scratch-context`.
-
-This is skills-only — no hooks. The `scratch-context` skill works but you have to remember to read your notes manually. For structural code queries, install CodeGraph separately (see companion section above); for shell-output trimming, install RTK separately (`cargo install rtk && rtk init -g`).
-
-### Tier 3 — Install as the `te` plugin (10 min, full stack)
-
-This is the recommended path for serious use. Skills + hooks, one install.
-
-**Prerequisites** (one-time, per machine):
-
-```bash
-# python3 — required for the SessionStart hook. Ships by default on
-# macOS and most Linux distros; install separately on Windows if needed.
-```
-
-**Recommended companions (separate installs, each ships its own Claude Code integration):**
-
-```bash
-# CodeGraph — pre-indexed knowledge graph for structural code queries.
-# Installer auto-registers the MCP server and writes usage instructions
-# into ~/.claude/CLAUDE.md globally.
-curl -fsSL https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.sh | sh
-```
-
-```bash
-# RTK — transparent Bash output trimming. Independent of this plugin.
-cargo install rtk           # see https://github.com/rtk-ai/rtk for current method
-rtk init -g                 # installs the PreToolUse hook globally
-```
-
-**Install the plugin:**
+Install the plugin so skills are available everywhere and the `SessionStart` hook auto-injects scratch notes:
 
 ```
 /plugin marketplace add MuktadirHassan/skills
 /plugin install te@skills
 ```
 
-(Or, for local development: `/plugin marketplace add /path/to/this/repo` then `/plugin install te@skills`.)
+Skills are then available as `/te:token-efficient-agent`, `/te:delegate-work`, etc.
 
-After install, the following happen **automatically everywhere**:
-- Skills are available namespaced: `/te:delegate-work`, `/te:tier-model`, `/te:scratch-context`
-- The `SessionStart` hook runs on every session start and injects `.agent-scratch/` notes — but only if that directory exists in the project (see per-project setup below)
+Then per project, run two setup commands:
 
-The following do **not** happen automatically and require manual steps per project:
+```bash
+# 1. Add operating rules so Claude applies the patterns automatically
+curl -fsSL https://raw.githubusercontent.com/MuktadirHassan/skills/main/templates/CLAUDE.md -o CLAUDE.md
 
-**1. Activate operating rules (recommended)** — without this, the skills exist but Claude won't apply the delegation/tiering patterns unless you invoke them manually. The base template is intentionally lean (~5 lines). Add sections from [`templates/SYSTEM_PROMPT.md`](templates/SYSTEM_PROMPT.md) if you want more detail (model tiering table, return contracts, etc.):
+# 2. Enable scratch note injection
+mkdir .agent-scratch && echo ".agent-scratch/" >> .gitignore
+```
+
+Without step 1, the skills exist but Claude won't apply them unless you invoke them manually.
+
+### Option B — Standalone skills (no hooks)
+
+Copy the skills into your global `~/.claude/skills/`:
+
+```bash
+git clone https://github.com/MuktadirHassan/skills /tmp/te
+cp -r /tmp/te/skills/* ~/.claude/skills/
+```
+
+Restart Claude Code. Skills show up in `/help` as `/token-efficient-agent`, `/delegate-work`, etc.
+
+Then add operating rules to any project you want them active in:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MuktadirHassan/skills/main/templates/CLAUDE.md -o CLAUDE.md
 ```
 
-**2. Enable scratch injection:**
+Note: with Option B, the `scratch-context` skill works but you have to read `.agent-scratch/` manually — there's no auto-injection hook.
 
-```bash
-mkdir .agent-scratch
-echo ".agent-scratch/" >> .gitignore
-```
+## Templates
 
-**3. (Optional) CodeGraph per-project index:**
+| File | Purpose |
+|---|---|
+| [`templates/CLAUDE.md`](templates/CLAUDE.md) | Drop-in operating rules (~5 lines). Copy to your project or `~/.claude/CLAUDE.md` |
+| [`templates/SYSTEM_PROMPT.md`](templates/SYSTEM_PROMPT.md) | Extended rules: model tiering table, failure modes. Paste the sections you want. |
+| [`templates/return-contract.md`](templates/return-contract.md) | Copy-paste subagent reply schemas (default, iterator, scout) |
 
-```bash
-# If you installed CodeGraph:
-codegraph init -i
-echo ".codegraph/" >> .gitignore
-```
+## Recommended companions
 
-## Per-project vs global
-
-- **`templates/CLAUDE.md`** → per project (or global in `~/.claude/CLAUDE.md`). Intentionally lean — just the triggers. Extend with sections from `templates/SYSTEM_PROMPT.md` as needed.
-- **Plugin / standalone skills** → global. You want them everywhere.
-- **`.agent-scratch/`** → per project, in `.gitignore`.
-
-## Mental model
-
-Four mechanisms for keeping context lean. This plugin covers three directly; the fourth (pre-computation) is provided by [CodeGraph](https://github.com/colbymchenry/codegraph) as a recommended separate install.
-
-1. **Isolation** — subagents have their own context. Whatever they read, grep, or iterate on never enters the supervisor's window. Return contracts enforce that they reply with a summary, not a transcript. (`delegate-work`)
-2. **Right-sizing** — Haiku for mechanical work, Sonnet for judgment, Opus only when you need it. Most exploration and verification is Haiku-shaped. (`tier-model`)
-3. **Externalization** — notes, decisions, and dead ends belong on disk, not in the conversation. (`scratch-context`)
-4. **Pre-computation** — structural questions about the codebase ("who calls X") should be answered by a pre-built index. Use [CodeGraph](https://github.com/colbymchenry/codegraph) — it ships its own MCP server and global instructions, no skill needed here.
-
-[RTK](https://github.com/rtk-ai/rtk) sits underneath all of these as another optional companion: even when a command does run in the supervisor, RTK trims the output before the model sees it. Install separately; not part of this plugin.
-
-## When this matters
-
-Wins compound over session length and codebase size. Short single-file tasks won't show much. Long sessions on real codebases — debugging across services, multi-file refactors, dependency upgrades — are where the supervisor's context normally fills up with exploration noise, and where these skills pay back hard.
-
-Two things to measure if you want to know it's working: tokens-per-completed-task, and how often you hit `/compact`. Both should drop noticeably. If you also installed RTK, `rtk gain` reports Bash-output savings directly.
+- **[CodeGraph](https://github.com/colbymchenry/codegraph)** — pre-indexed knowledge graph for structural code queries ("who calls X", "what does Y affect"). One MCP call instead of 30 greps. Ships its own Claude Code integration.
+- **[RTK](https://github.com/rtk-ai/rtk)** — trims verbose Bash output (60–90% savings on `git`, `npm`, etc.) before the model sees it. Ships its own hook.
 
 ## Repo layout
 
@@ -141,19 +76,17 @@ Two things to measure if you want to know it's working: tokens-per-completed-tas
 .claude-plugin/plugin.json        plugin manifest (name: te)
 hooks/
   hooks.json                      SessionStart registration
-  load-scratch.py                 injects .agent-scratch contents on session start
+  load-scratch.py                 injects .agent-scratch/ contents on session start
 skills/
-  token-efficient-agent/SKILL.md  meta/orchestrator — activates all three patterns
-  delegate-work/SKILL.md          subagent patterns and return contract enforcement
-  tier-model/SKILL.md             Haiku / Sonnet / Opus decision table
-  scratch-context/SKILL.md        externalize notes, decisions, dead ends to disk
+  token-efficient-agent/SKILL.md  meta/orchestrator
+  delegate-work/SKILL.md          subagent patterns and return contract
+  tier-model/SKILL.md             model selection decision table
+  scratch-context/SKILL.md        externalize state to .agent-scratch/
 templates/
-  CLAUDE.md                       drop-in operating rules (lean, ~5 lines)
-  SYSTEM_PROMPT.md                extended rules (model table, return contract, failure modes)
-  return-contract.md              subagent reply schemas (copy-paste ready)
+  CLAUDE.md                       drop-in operating rules
+  SYSTEM_PROMPT.md                extended rules
+  return-contract.md              subagent reply schemas
 ```
-
-The skills directory follows the same shape Claude Code expects in `~/.claude/skills/`, so the same files work as a standalone install and as part of the plugin — no duplication.
 
 ## License
 
